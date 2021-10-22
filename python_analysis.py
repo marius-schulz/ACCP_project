@@ -43,10 +43,9 @@ def i_time(t,times):
 #subsequently take average of CH4:CO2 ratio
 def data_retr(df,t_end):
     #df needs to have column names TIMES with the measurement times, notation hh:mm:ss.ss
-    times = [t_sec(time) for time in df["TIME"]]  #In seconds from start of day 
+    times = [t_sec(time)+7200 for time in df["TIME"]]  #In seconds from start of day in local dutch time
     
     #Find index corresponding to t_end
-    t = t_sec(t_end)
     i_start = i_time((t_sec(t_end)-60),times)
     i_end = i_time(t_sec(t_end),times)
     
@@ -89,13 +88,17 @@ df = pd.concat([df1, df2, df3, df4], ignore_index=True)
 # The manholes numbering/naming
 manholes = np.arange(1,21)
 
+#Import time stamps
+timestamps = pd.read_csv(os.path.join(path,"measurement_times.csv"))
+
 # End times of each measurement to retrieve the data coresponding to the manholes
 # Use notation 13:10:05 for 5 seconds past 10 minutes past 13h. 
-t_end = ['15:14:00' for i in range(len(manholes))]  #Change to actual times!!
-
+t_end = timestamps["END"]  
 
 #Import coordinates
-coor = pd.read_csv(os.path.join(path,"coordinates.csv"),delimiter=';')
+coor = pd.read_csv(os.path.join(path,"coordinates.csv"),delimiter='\t')
+print(coor)
+
 
 #%%Analyse data
 
@@ -109,15 +112,11 @@ for i in range(len(t_end)):
     ratios.append(ratio)
     dry_ratios.append(ratio_dry)
 
-#Build dataframe with data
-data = pd.DataFrame(data={'manholes':manholes,'end times':t_end,'ratio':ratios,'dry ratio':dry_ratios },index=manholes)
-
-#Save data to csv file
-data.to_csv(os.path.join(path,'data'),index=False)
-
 #%%Plotting data
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 
 lat_max =52.0881
 lat_min =52.0847   
@@ -130,12 +129,23 @@ im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
 fig,ax = plt.subplots(figsize=(12,8))
 
-ax.scatter(coor['long'],coor['lat'],alpha=0.8,zorder=1,s=40)
+plot = ax.scatter(coor['long'],coor['lat'],alpha=0.8,zorder=1,s=40, c=ratios,cmap='viridis')
 ax.set_xlim(lon_min,lon_max)
 ax.set_ylim(lat_min,lat_max)
 
 ax.imshow(im,zorder=0,extent=BBox,aspect='equal',alpha=0.5)
 
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="2%", pad=0.05)
+cbar = plt.colorbar(plot, cax=cax)
+
+
+
+#%%Save data to csv file
+
+#Build dataframe with data
+data = pd.DataFrame(data={'manholes':manholes,'end times':t_end,'ratio':ratios,'dry ratio':dry_ratios },index=manholes)
+data.to_csv(os.path.join(path,'data'),index=False)
 
 
 
