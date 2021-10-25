@@ -47,7 +47,7 @@ def data_retr(df,t_end,):
     
     #Find index corresponding to t_end
     i_start = i_time((t_sec(t_end)-60),times)
-    i_end = i_time(t_sec(t_end),times)    
+    i_end = i_time(t_sec(t_end),times)
     
     #Compute ratio as timeseries for manhole measurement
     ratio = df.CH4[i_start:i_end]/df.CO2[i_start:i_end]
@@ -106,6 +106,33 @@ CO2_dry_bg = 413
 u_CH4_dry_bg = 0.002
 u_CO2_dry_bg = 8
 
+#%%Make Regression Fit
+
+from scipy.optimize import curve_fit
+def func(x, a,b): #Define function for Plotting
+    return a*x+b
+def lin_reg(i,plot): #Defining function that gives fit parameters for manhole i
+    times = [t_sec(time)+7225 for time in df["TIME"]] #Get time corresponding to manhole measurement
+    i_start = i_time((t_sec(t_end[i])-50),times)
+    i_end = i_time(t_sec(t_end[i]),times)
+    xdata = df.CO2_dry[i_start:i_end]-403 #Calculate measured CO2 excess concentrations
+    ydata = df.CH4_dry[i_start:i_end]-1.97 #Calculate measured CH4 excess concentrations
+    popt, pcov = curve_fit(func, xdata, ydata) #make fit
+    if plot: #optional: Scatter plot concentrations and fitted function
+        plt.scatter(xdata,ydata)
+        plt.plot(xdata,func(xdata,popt[0],popt[1]))
+        plt.xlabel('CO2 [ppm]')
+        plt.ylabel('CH4 [ppm]')
+    return popt
+
+#print(lin_reg(5,plot=True))
+params=[[],[]]
+for i in range(len(t_end)):
+    popt=lin_reg(i, plot=False)
+    params[0].append(popt[0])
+    params[1].append(popt[1])
+print(params[0])#print regression slope values for all manholes
+plt.scatter(range(len(params[0])),params[0])
 #%%Analyse data
 
 #compute background ratios
@@ -132,9 +159,7 @@ ratios_dry_norm = (np.array(dry_ratios)-ratio_dry_bg)*100
 
 #%%Plotting data
 
-import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.colors as colors
 
 
 lat_max =52.0881
