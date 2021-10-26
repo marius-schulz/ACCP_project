@@ -144,18 +144,25 @@ plt.savefig('fit_subplots.pdf')
     
 #print(lin_reg(5,plot=True))
 
-#params=[[],[]]
-#for i in range(len(t_end)):
-#    popt=lin_reg(i, plot=False)
-#    params[0].append(popt[0])
-#    params[1].append(popt[1])
-#print(params[0])#print regression slope values for all manholes
+params=[[],[]]
+for i in range(len(t_end)):
+    popt=lin_reg(i, plot=False)
+    params[0].append(popt[0])
+    params[1].append(popt[1])
+print(params[0])#print regression slope values for all manholes
 
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
-#%%Analyse data
-
-
+#%%Overall Slope Plot
+data=pd.read_csv(os.path.join(path,"data.csv"))
+xdata=np.linspace(0,1000,1000)
+c_list=['blue','red']
+for i in range(len(t_end)):
+    plt.plot(xdata,func(xdata,data['ratio'][i],data['intercept'][i]),label='Manhole {0}'.format(i+1))
+plt.ylabel('c(CH4)')
+plt.ylim([-2,15])
+#plt.yscale('log')
+#plt.xscale('log')
 
 #%%Plotting data
 
@@ -200,7 +207,7 @@ data = pd.DataFrame(data={'manholes':manholes,
 
 print(data)
 
-data.to_csv(os.path.join(path,'data'),index=False)
+data.to_csv(os.path.join(path,'data.csv'),index=False)
 
 
 
