@@ -81,7 +81,7 @@ df2 = pd.read_csv(os.path.join(path, "G2301\\15\\CFADS2394-20211015-140042Z-Data
 df = pd.concat([df1, df2], ignore_index=True)
 
 # The manholes numbering/naming
-manholes = np.arange(1,21)
+manholes = np.arange(1,20)
 
 #Import time stamps
 timestamps = pd.read_csv(os.path.join(path,"measurement_times.csv"))
@@ -91,7 +91,7 @@ timestamps = pd.read_csv(os.path.join(path,"measurement_times.csv"))
 t_end = timestamps["END"]  
 
 #Import coordinates
-coor = pd.read_csv(os.path.join(path,"coordinates.csv"),delimiter='\t')
+coor = pd.read_csv(os.path.join(path,"coordinates.csv"),delimiter=',')
 
 #Background levels CH4 and CO2 [ppm] for the dry measurements
 CH4_bg = 1.99
@@ -99,6 +99,8 @@ CO2_bg = 413
 
 u_CH4_bg = 0.002
 u_CO2_bg = 8
+
+
 
 #%%Make Regression Fit
 
@@ -129,39 +131,50 @@ print(params[0])#print regression slope values for all manholes
 plt.scatter(range(len(params[0])),params[0])
 
 
+
 #%%Plotting data
 
-# from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-# lat_max =52.0881
-# lat_min =52.0847   
+lat_max =52.0881
+lat_min =52.0847   
 
-# lon_max = 5.1775
-# lon_min = 5.1632
+lon_max = 5.1775
+lon_min = 5.1632
 
-# BBox = ((lon_min,lon_max,lat_min,lat_max))
-# im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
+BBox = ((lon_min,lon_max,lat_min,lat_max))
+im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
-# fig,ax = plt.subplots(figsize=(12,8))
+fig,ax = plt.subplots(figsize=(12,8))
 
-# plot = ax.scatter(coor['long'],coor['lat'],alpha=0.8,zorder=1,s=40, c=ratios_norm,cmap='plasma')
-# ax.set_xlim(lon_min,lon_max)
-# ax.set_ylim(lat_min,lat_max)
+plot = ax.scatter(coor['lon'],coor['lat'],alpha=0.8,zorder=1,s=40, c=params[0],cmap='plasma')
+ax.set_xlim(lon_min,lon_max)
+ax.set_ylim(lat_min,lat_max)
 
-# ax.imshow(im,zorder=0,extent=BBox,aspect='equal',alpha=0.5)
+ax.imshow(im,zorder=0,extent=BBox,aspect='equal',alpha=0.5)
 
-# divider = make_axes_locatable(ax)
-# cax = divider.append_axes("right", size="2%", pad=0.05)
-# cbar = plt.colorbar(plot, cax=cax)
-# cbar.set_label("ppm/ppm %")
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="2%", pad=0.05)
+cbar = plt.colorbar(plot, cax=cax)
+cbar.set_label("ppm/ppm")
 
-
+#%%
+print(t_end)
 
 #%%Save data to csv file
 
 #Build dataframe with data
-data = pd.DataFrame(data={'manholes':manholes,'end times':t_end,'ratio':ratios,'dry ratio':dry_ratios },index=manholes)
+data = pd.DataFrame(data={'manholes':manholes,
+                          'end times':t_end,
+                          'ratio':params[0],
+                          'intercept':params[1],
+                          'lat':coor["lat"],
+                          'lon':coor["lon"],
+                          'pipe type':coor["pipetype"]})
+
+print(data)
+
 data.to_csv(os.path.join(path,'data'),index=False)
 
 
@@ -213,7 +226,7 @@ for i in range(len(t_end)):
     CH4_plot = axs[0].plot(times_plot,CH4)
     C02_plot = axs[1].plot(times_plot,CO2)
     
-    fig.savefig(os.path.join(path,'figures_timespan',"manhole_%i.jpg"%(i+1)))
+    fig.savefig(os.path.join(path,'figures_ToI',"manhole_%i.jpg"%(i+1)))
     
     
 #%%Make plot of ToI of specific manhole for further examination
