@@ -169,6 +169,101 @@ data.to_csv(os.path.join(path,'data'),index=False)
 
 
 
+#%%Make plots of all times of interest (ToI), times at which the data is selected
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
+#Times in seconds, local time, corresponding to data
+times = [t_sec(time)+7225 for time in df["TIME"]] 
 
+#Make plot of analysed data for every ToI
+for i in range(len(t_end)):
+    #Select ToI
+        #In terms of index in all data
+    i_start = i_time(t_sec(t_end[i])-50,times)
+    i_end = i_time(t_sec(t_end[i]),times)
+        #In terms of time
+    t_min = times[i_time(t_sec(t_end[i])-50,times)]
+    t_max = times[(i_time(t_sec(t_end[i]),times))]
+    
+    #Plotting aesthetics
+    fig,axs = plt.subplots(2,1,sharex=True)
+    
+    axs[0].xaxis.set_major_locator(MultipleLocator(10))
+    axs[1].xaxis.set_major_locator(MultipleLocator(10))
+    axs[0].xaxis.set_minor_locator(MultipleLocator(2))
+    axs[1].xaxis.set_minor_locator(MultipleLocator(2))
+    
+    axs[0].tick_params(labelrotation=45)
+    axs[1].tick_params(labelrotation=45)
+    
+    axs[0].set_ylabel('CH4 [ppm]')
+    axs[1].set_ylabel('CO2 [ppm]')
+    axs[1].set_xlabel('Time (s)')
+    fig.suptitle('Manhole %i'%(i+1))
+    
+    
+    #Plotting shaded area of ToI
+    area_CH4 = axs[0].axvspan(t_min,t_max,color='darksalmon',ec='red')
+    area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
 
+    #Plot data little before and after ToI
+    overshoot = 30 #Amount of datapoints overshoot before and after time of interest
+    times_plot = times[int(i_start-overshoot):int(i_end+overshoot)] #Timespan that is plotted
+    CH4 = df['CH4'][int(i_start-overshoot):int(i_end+overshoot)] #Select data
+    CO2 = df['CO2'][int(i_start-overshoot):int(i_end+overshoot)] #Select data
+    
+    CH4_plot = axs[0].plot(times_plot,CH4)
+    C02_plot = axs[1].plot(times_plot,CO2)
+    
+    fig.savefig(os.path.join(path,'figures_timespan',"manhole_%i.jpg"%(i+1)))
+    
+    
+#%%Make plot of ToI of specific manhole for further examination
+
+#Select manhole:
+manhole = 5
+i = manhole
+
+#Select ToI
+    #In terms of index in all data
+i_start = i_time(t_sec(t_end[i])-50,times)
+i_end = i_time(t_sec(t_end[i]),times)
+    #In terms of time
+t_min = times[i_time(t_sec(t_end[i])-50,times)]
+t_max = times[(i_time(t_sec(t_end[i]),times))]
+
+#Plotting aesthetics
+fig,axs = plt.subplots(2,1)
+
+axs[0].xaxis.set_major_locator(MultipleLocator(10))
+axs[1].xaxis.set_major_locator(MultipleLocator(10))
+axs[0].xaxis.set_minor_locator(MultipleLocator(2))
+axs[1].xaxis.set_minor_locator(MultipleLocator(2))
+
+axs[0].tick_params(labelrotation=45)
+axs[1].tick_params(labelrotation=45)
+
+axs[0].set_ylabel('CH4 [ppm]')
+axs[1].set_ylabel('CO2 [ppm]')
+axs[1].set_xlabel('Time (s)')
+fig.suptitle('Manhole %i'%(i+1))
+
+#Plotting shaded area of ToI
+area_CH4 = axs[0].axvspan(t_min,t_max,color='darksalmon',ec='red')
+area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
+
+#Plot data little before and after ToI
+undershoot = 100 #Amount of datapoints overshoot before and after time of interest
+overshoot = 100 #Amount of datapoints overshoot before and after time of interest
+
+times_plot = times[int(i_start-undershoot):int(i_end+overshoot)] #Timespan that is plotted
+CH4 = df['CH4'][int(i_start-undershoot):int(i_end+overshoot)] #Select data
+CO2 = df['CO2'][int(i_start-undershoot):int(i_end+overshoot)] #Select data
+
+CH4_plot = axs[0].plot(times_plot,CH4)
+C02_plot = axs[1].plot(times_plot,CO2)
+
+fig.savefig(os.path.join(path,"figures_individual_measurements","manhole_%i.jpg"%(i+1)))
+print(MultipleLocator(10))
