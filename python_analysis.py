@@ -144,12 +144,12 @@ plt.savefig('fit_subplots.pdf')
     
 #print(lin_reg(5,plot=True))
 
-#params=[[],[]]
-#for i in range(len(t_end)):
-#    popt=lin_reg(i, plot=False)
-#    params[0].append(popt[0])
-#    params[1].append(popt[1])
-#print(params[0])#print regression slope values for all manholes
+params=[[],[]]
+for i in range(len(t_end)):
+    popt=lin_reg(i, plot=False)
+    params[0].append(popt[0])
+    params[1].append(popt[1])
+print(params[0])#print regression slope values for all manholes
 
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
@@ -184,8 +184,6 @@ cax = divider.append_axes("right", size="2%", pad=0.05)
 cbar = plt.colorbar(plot, cax=cax)
 cbar.set_label("ppm/ppm")
 
-#%%
-print(t_end)
 
 #%%Save data to csv file
 
@@ -244,7 +242,7 @@ for i in range(len(t_end)):
     area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
 
     #Plot data little before and after ToI
-    overshoot = 30 #Amount of datapoints overshoot before and after time of interest
+    overshoot = 10 #Amount of datapoints overshoot before and after time of interest
     times_plot = times[int(i_start-overshoot):int(i_end+overshoot)] #Timespan that is plotted
     CH4 = df['CH4_dry'][int(i_start-overshoot):int(i_end+overshoot)]-CH4_bg #Select data
     CO2 = df['CO2_dry'][int(i_start-overshoot):int(i_end+overshoot)]-CO2_bg #Select data
