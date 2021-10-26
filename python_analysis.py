@@ -118,15 +118,40 @@ def lin_reg(i,plot): #Defining function that gives fit parameters for manhole i
         plt.xlabel('CO2 [ppm]')
         plt.ylabel('CH4 [ppm]')
     return popt
-
-#print(lin_reg(5,plot=True))
-params=[[],[]]
+from matplotlib.ticker import FormatStrFormatter
+from matplotlib.backends.backend_pdf import PdfPages
+fig, axs = plt.subplots(4,5,figsize=(18,14))
 for i in range(len(t_end)):
-    popt=lin_reg(i, plot=False)
-    params[0].append(popt[0])
-    params[1].append(popt[1])
-print(params[0])#print regression slope values for all manholes
-plt.scatter(range(len(params[0])),params[0])
+    times = [t_sec(time)+7225 for time in df["TIME"]] #Get time corresponding to manhole measurement
+    i_start = i_time((t_sec(t_end[i])-50),times)
+    i_end = i_time(t_sec(t_end[i]),times)
+    xdata = df.CO2_dry[i_start:i_end]-403 #Calculate measured CO2 excess concentrations
+    ydata = df.CH4_dry[i_start:i_end]-1.97 #Calculate measured CH4 excess concentrations
+    popt, pcov = curve_fit(func, xdata, ydata) #make fit
+    k=int(i/5)
+    l=i%5
+    popt, pcov = curve_fit(func, xdata, ydata)
+    axs[k, l].scatter(xdata,ydata,s=2)
+    axs[k, l].plot(xdata,func(xdata,popt[0],popt[1]))
+    axs[k, l].set_title('Manhole {0}'.format(i+1))
+    axs[k,l].tick_params(axis='both', which='major', labelsize=9)
+    axs[k,l].yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+    axs[k,0].set_ylabel('c(CH4) [ppm]')
+    axs[3,l].set_xlabel('c(CO2) [ppm]')
+plt.savefig('fit_subplots.pdf')
+    
+#print(lin_reg(5,plot=True))
+
+#params=[[],[]]
+#for i in range(len(t_end)):
+#    popt=lin_reg(i, plot=False)
+#    params[0].append(popt[0])
+#    params[1].append(popt[1])
+#print(params[0])#print regression slope values for all manholes
+
+#plt.scatter(range(len(params[0])),params[0])
+#plt.yscale('log')
+#%%Analyse data
 
 
 #%%Plotting data
@@ -161,8 +186,8 @@ plt.scatter(range(len(params[0])),params[0])
 #%%Save data to csv file
 
 #Build dataframe with data
-data = pd.DataFrame(data={'manholes':manholes,'end times':t_end,'ratio':ratios,'dry ratio':dry_ratios },index=manholes)
-data.to_csv(os.path.join(path,'data'),index=False)
+#data = pd.DataFrame(data={'manholes':manholes,'end times':t_end,'ratio':ratios,'dry ratio':dry_ratios },index=manholes)
+#data.to_csv(os.path.join(path,'data'),index=False)
 
 
 #%%Make plots of all times of interest (ToI), times at which the data is selected
