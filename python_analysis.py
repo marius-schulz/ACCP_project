@@ -153,22 +153,15 @@ print(params[0])#print regression slope values for all manholes
 
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
-#%%Overall Slope Plot
-data=pd.read_csv(os.path.join(path,"data.csv"))
-xdata=np.linspace(0,1000,1000)
-c_list=['blue','red']
-for i in range(len(t_end)):
-    plt.plot(xdata,func(xdata,data['ratio'][i],data['intercept'][i]),label='Manhole {0}'.format(i+1))
-plt.ylabel('c(CH4)')
-plt.ylim([-2,15])
-#plt.yscale('log')
-#plt.xscale('log')
+#%%Analyse data
+
+
 
 #%%Plotting data
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
+#Load map and setting coordinates
 lat_max =52.0881
 lat_min =52.0847   
 
@@ -178,9 +171,24 @@ lon_min = 5.1632
 BBox = ((lon_min,lon_max,lat_min,lat_max))
 im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
+#Dictionary for coding different pipe types on map
+pipetype = {'sewege':'v',
+            'rain':'o',
+            'gas':'s'}
+
 fig,ax = plt.subplots(figsize=(12,8))
 
-plot = ax.scatter(coor['lon'],coor['lat'],alpha=0.8,zorder=1,s=40, c=params[0],cmap='plasma')
+vmin = np.min(params[0])
+vmax = np.max(params[0])
+for i in range(len(params[0])):
+    
+    plot = ax.scatter(coor['lon'][i],coor['lat'][i],
+                      c=params[0][i],
+                      zorder=1,s=40, 
+                      cmap='plasma',vmin=vmin,vmax=vmax,alpha=0.8,
+                      marker=pipetype[coor["pipetype"][i]])
+    
+    
 ax.set_xlim(lon_min,lon_max)
 ax.set_ylim(lat_min,lat_max)
 
@@ -261,10 +269,14 @@ for i in range(len(t_end)):
     
     
 #%%Make plot of ToI of specific manhole for further examination
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
+
 
 #Select manhole:
-manhole = 5
-i = manhole
+manhole = 1
+i = manhole-1
 
 #Select ToI
     #In terms of index in all data
@@ -277,10 +289,10 @@ t_max = times[(i_time(t_sec(t_end[i]),times))]
 #Plotting aesthetics
 fig,axs = plt.subplots(2,1)
 
-axs[0].xaxis.set_major_locator(MultipleLocator(10))
-axs[1].xaxis.set_major_locator(MultipleLocator(10))
-axs[0].xaxis.set_minor_locator(MultipleLocator(2))
-axs[1].xaxis.set_minor_locator(MultipleLocator(2))
+axs[0].xaxis.set_major_locator(MultipleLocator(60))
+axs[1].xaxis.set_major_locator(MultipleLocator(60))
+axs[0].xaxis.set_minor_locator(MultipleLocator(10))
+axs[1].xaxis.set_minor_locator(MultipleLocator(10))
 
 axs[0].tick_params(labelrotation=45)
 axs[1].tick_params(labelrotation=45)
@@ -295,8 +307,8 @@ area_CH4 = axs[0].axvspan(t_min,t_max,color='darksalmon',ec='red')
 area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
 
 #Plot data little before and after ToI
-undershoot = 100 #Amount of datapoints overshoot before and after time of interest
-overshoot = 100 #Amount of datapoints overshoot before and after time of interest
+undershoot = 500 #Amount of datapoints overshoot before and after time of interest
+overshoot = 10 #Amount of datapoints overshoot before and after time of interest
 
 times_plot = times[int(i_start-undershoot):int(i_end+overshoot)] #Timespan that is plotted
 CH4 = df['CH4'][int(i_start-undershoot):int(i_end+overshoot)]-CH4_bg #Select data
@@ -307,3 +319,7 @@ C02_plot = axs[1].plot(times_plot,CO2)
 
 fig.savefig(os.path.join(path,"figures_individual_measurements","manhole_%i.jpg"%(i+1)))
 print(MultipleLocator(10))
+
+#%%
+
+
