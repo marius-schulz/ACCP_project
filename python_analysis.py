@@ -154,7 +154,9 @@ print(params[0])#print regression slope values for all manholes
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
 
+
 #%%Plotting map with measurement locations
+
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.lines import Line2D
