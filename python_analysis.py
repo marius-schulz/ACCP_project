@@ -153,18 +153,17 @@ print(params[0])#print regression slope values for all manholes
 
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
-#%%Analyse data
 
-#plt.fill_between(x, y)
 
-#%%Plotting data
+#%%Plotting map with measurement locations
+
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.lines import Line2D
 
 #Load map and setting coordinates
 lat_max =52.0881
 lat_min =52.0847   
-
 lon_max = 5.1775
 lon_min = 5.1632
 
@@ -172,32 +171,109 @@ BBox = ((lon_min,lon_max,lat_min,lat_max))
 im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
 #Dictionary for coding different pipe types on map
-pipetype = {'sewege':'v',
+pipetype_symbols = {'sewege':'v',
             'rain':'o',
-            'gas':'s'}
+            'gas':'s',
+            'undefined':'X'}
 
-fig,ax = plt.subplots(figsize=(12,8))
+fig,ax = plt.subplots(figsize=(10,2.5))
 
-vmin = np.min(params[0])
-vmax = np.max(params[0])
+vmin = np.min(params[0])*1000
+vmax = np.max(params[0])*1000
 for i in range(len(params[0])):
-    
     plot = ax.scatter(coor['lon'][i],coor['lat'][i],
-                      c=params[0][i],
-                      zorder=1,s=40, 
+                      c='none',
+                      zorder=1,s=160, 
                       cmap='plasma',vmin=vmin,vmax=vmax,alpha=0.8,
-                      marker=pipetype[coor["pipetype"][i]])
-    
+                      ec='k',linewidths=1,
+                      marker=pipetype_symbols[coor["pipetype"][i]])
     
 ax.set_xlim(lon_min,lon_max)
 ax.set_ylim(lat_min,lat_max)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Lattitude')
+
+ax.imshow(im,zorder=0,extent=BBox,aspect='equal',alpha=0.5)
+
+#plot legend
+symbols = [Line2D([0],[0],marker='v',c='none',mec='k',label='sewage',ms=10),
+           Line2D([0],[0],marker='o',c='none',mec='k',label='rain',ms=10),
+           Line2D([0],[0],marker='s',c='none',mec='k',label='gas',ms=10),
+           Line2D([0],[0],marker='X',c='none',mec='k',label='undefined',ms=10)]
+
+fig.legend(handles=symbols,ncol=4,loc='upper center',bbox_to_anchor=(0.5,1))
+
+fig.savefig(os.path.join(path,'map_locations.jpg'))
+
+
+
+#%%Plotting map with data
+
+from matplotlib.lines import Line2D
+from matplotlib.colors import LinearSegmentedColormap
+
+#Setting colormap
+
+colors = ['orangered',"darkorange", "gold", "lawngreen", "lightseagreen"]
+nodes = [0,0.03,0.1,0.4,1]
+cmap = LinearSegmentedColormap.from_list("mycmap", list(zip(nodes, colors)))
+
+#Load map and setting coordinates
+lat_max =52.0881
+lat_min =52.0847   
+lon_max = 5.1775
+lon_min = 5.1632
+
+BBox = ((lon_min,lon_max,lat_min,lat_max))
+im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
+
+#Dictionary for coding different pipe types on map
+pipetype_symbols = {'sewege':'v',
+            'rain':'o',
+            'gas':'s',
+            'undefined':'X'}
+
+fig,ax = plt.subplots(figsize=(10,2.5))
+
+vmin = np.min(params[0])*1000
+vmax = np.max(params[0])*1000
+for i in range(len(params[0])):
+    plot = ax.scatter(coor['lon'][i],coor['lat'][i],
+                      c=params[0][i]*1000,
+                      zorder=1,s=160, 
+                      cmap=cmap,vmin=vmin,vmax=vmax,alpha=0.8,
+                      ec='k',linewidths=1,
+                      marker=pipetype_symbols[coor["pipetype"][i]])
+    
+ax.set_xlim(lon_min,lon_max)
+ax.set_ylim(lat_min,lat_max)
+ax.set_xticks([])
+ax.set_yticks([])
+ax.set_xticklabels([])
+ax.set_yticklabels([])
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Lattitude')
 
 ax.imshow(im,zorder=0,extent=BBox,aspect='equal',alpha=0.5)
 
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="2%", pad=0.05)
 cbar = plt.colorbar(plot, cax=cax)
-cbar.set_label("ppm/ppm")
+cbar.set_label("CH4:CO2 [ppb/ppm]")
+
+#plot legend
+symbols = [Line2D([0],[0],marker='v',c='none',mec='k',label='sewage',ms=10),
+           Line2D([0],[0],marker='o',c='none',mec='k',label='rain',ms=10),
+           Line2D([0],[0],marker='s',c='none',mec='k',label='gas',ms=10),
+           Line2D([0],[0],marker='X',c='none',mec='k',label='undefined',ms=10)]
+
+fig.legend(handles=symbols,ncol=4,loc='upper center',bbox_to_anchor=(0.5,1))
+
+fig.savefig(os.path.join(path,'map_ratios.jpg'))
 
 
 #%%Save data to csv file
@@ -240,15 +316,18 @@ for i in range(len(t_end)):
     
     axs[0].xaxis.set_major_locator(MultipleLocator(10))
     axs[1].xaxis.set_major_locator(MultipleLocator(10))
-    axs[0].xaxis.set_minor_locator(MultipleLocator(2))
-    axs[1].xaxis.set_minor_locator(MultipleLocator(2))
+    # axs[0].xaxis.set_minor_locator(MultipleLocator(2))
+    # axs[1].xaxis.set_minor_locator(MultipleLocator(2))
+    axs[0].set_xticklabels([])
+    axs[1].set_xticklabels([])
+    
     
     axs[0].tick_params(labelrotation=45)
     axs[1].tick_params(labelrotation=45)
     
     axs[0].set_ylabel('CH4 [ppm]')
     axs[1].set_ylabel('CO2 [ppm]')
-    axs[1].set_xlabel('Time (s)')
+    axs[1].set_xlabel('Time [10 s]')
     fig.suptitle('Manhole %i'%(i+1))
     
     
@@ -296,10 +375,13 @@ axs[1].xaxis.set_minor_locator(MultipleLocator(10))
 
 axs[0].tick_params(labelrotation=45)
 axs[1].tick_params(labelrotation=45)
+axs[0].set_xticklabels([])
+axs[1].set_xticklabels([])
+    
 
 axs[0].set_ylabel('CH4 [ppm]')
 axs[1].set_ylabel('CO2 [ppm]')
-axs[1].set_xlabel('Time (s)')
+axs[1].set_xlabel('Time [10 s]')
 fig.suptitle('Manhole %i'%(i+1))
 
 #Plotting shaded area of ToI
@@ -307,8 +389,8 @@ area_CH4 = axs[0].axvspan(t_min,t_max,color='darksalmon',ec='red')
 area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
 
 #Plot data little before and after ToI
-undershoot = 500 #Amount of datapoints overshoot before and after time of interest
-overshoot = 10 #Amount of datapoints overshoot before and after time of interest
+undershoot = 20 #Amount of datapoints overshoot before and after time of interest
+overshoot = 20 #Amount of datapoints overshoot before and after time of interest
 
 times_plot = times[int(i_start-undershoot):int(i_end+overshoot)] #Timespan that is plotted
 CH4 = df['CH4'][int(i_start-undershoot):int(i_end+overshoot)]-CH4_bg #Select data
