@@ -161,7 +161,7 @@ print(params[0])#print regression slope values for all manholes
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-
+#Load map and setting coordinates
 lat_max =52.0881
 lat_min =52.0847   
 
@@ -171,9 +171,24 @@ lon_min = 5.1632
 BBox = ((lon_min,lon_max,lat_min,lat_max))
 im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
+#Dictionary for coding different pipe types on map
+pipetype = {'sewege':'v',
+            'rain':'o',
+            'gas':'s'}
+
 fig,ax = plt.subplots(figsize=(12,8))
 
-plot = ax.scatter(coor['lon'],coor['lat'],alpha=0.8,zorder=1,s=40, c=params[0],cmap='plasma')
+vmin = np.min(params[0])
+vmax = np.max(params[0])
+for i in range(len(params[0])):
+    
+    plot = ax.scatter(coor['lon'][i],coor['lat'][i],
+                      c=params[0][i],
+                      zorder=1,s=40, 
+                      cmap='plasma',vmin=vmin,vmax=vmax,alpha=0.8,
+                      marker=pipetype[coor["pipetype"][i]])
+    
+    
 ax.set_xlim(lon_min,lon_max)
 ax.set_ylim(lat_min,lat_max)
 
@@ -260,7 +275,7 @@ from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
 
 #Select manhole:
-manhole = 12
+manhole = 1
 i = manhole-1
 
 #Select ToI
@@ -292,8 +307,8 @@ area_CH4 = axs[0].axvspan(t_min,t_max,color='darksalmon',ec='red')
 area_CO2 = axs[1].axvspan(t_min,t_max,color='darksalmon',ec='red')
 
 #Plot data little before and after ToI
-undershoot = 0 #Amount of datapoints overshoot before and after time of interest
-overshoot = 0 #Amount of datapoints overshoot before and after time of interest
+undershoot = 500 #Amount of datapoints overshoot before and after time of interest
+overshoot = 10 #Amount of datapoints overshoot before and after time of interest
 
 times_plot = times[int(i_start-undershoot):int(i_end+overshoot)] #Timespan that is plotted
 CH4 = df['CH4'][int(i_start-undershoot):int(i_end+overshoot)]-CH4_bg #Select data
