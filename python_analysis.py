@@ -127,8 +127,8 @@ for i in range(len(t_end)):
     times = [t_sec(time)+7225 for time in df["TIME"]] #Get time corresponding to manhole measurement
     i_start = i_time((t_sec(t_end[i])-50),times)
     i_end = i_time(t_sec(t_end[i]),times)
-    xdata = df.CO2_dry[i_start:i_end]-403 #Calculate measured CO2 excess concentrations
-    ydata = df.CH4_dry[i_start:i_end]-1.97 #Calculate measured CH4 excess concentrations
+    xdata = df.CO2_dry[i_start:i_end]-CO2_bg #Calculate measured CO2 excess concentrations
+    ydata = df.CH4_dry[i_start:i_end]-CH4_bg #Calculate measured CH4 excess concentrations
     popt, pcov = curve_fit(func, xdata, ydata) #make fit
     k=int(i/5)
     l=i%5
@@ -153,6 +153,23 @@ print(params[0])#print regression slope values for all manholes
 
 #plt.scatter(range(len(params[0])),params[0])
 #plt.yscale('log')
+
+
+#%%Save data to csv file
+
+#Build dataframe with data
+data = pd.DataFrame(data={'manholes':manholes,
+                          'end times':t_end,
+                          'ratio':params[0],
+                          'intercept':params[1],
+                          'lat':coor["lat"],
+                          'lon':coor["lon"],
+                          'pipe type':coor["pipetype"]})
+
+print(data)
+
+data.to_csv(os.path.join(path,'data.csv'),index=False)
+
 #%%Combined Slope plot
 from matplotlib.lines import Line2D
 import matplotlib.patches as mpatches
@@ -188,7 +205,7 @@ BBox = ((lon_min,lon_max,lat_min,lat_max))
 im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
 #Dictionary for coding different pipe types on map
-pipetype_symbols = {'sewege':'v',
+pipetype_symbols = {'sewage':'v',
             'rain':'o',
             'gas':'s',
             'undefined':'X'}
@@ -200,10 +217,10 @@ vmax = np.max(params[0])*1000
 for i in range(len(params[0])):
     plot = ax.scatter(coor['lon'][i],coor['lat'][i],
                       c='none',
-                      zorder=1,s=160, 
+                      zorder=1,s=80, 
                       cmap='plasma',vmin=vmin,vmax=vmax,alpha=0.8,
-                      ec='k',linewidths=1,
-                      marker=pipetype_symbols[coor["pipetype"][i]])
+                      ec='k',linewidths=2,
+                      marker='x')
     
 ax.set_xlim(lon_min,lon_max)
 ax.set_ylim(lat_min,lat_max)
@@ -221,8 +238,6 @@ symbols = [Line2D([0],[0],marker='v',c='none',mec='k',label='sewage',ms=10),
            Line2D([0],[0],marker='o',c='none',mec='k',label='rain',ms=10),
            Line2D([0],[0],marker='s',c='none',mec='k',label='gas',ms=10),
            Line2D([0],[0],marker='X',c='none',mec='k',label='undefined',ms=10)]
-
-fig.legend(handles=symbols,ncol=4,loc='upper center',bbox_to_anchor=(0.5,1))
 
 fig.savefig(os.path.join(path,'map_locations.jpg'))
 
@@ -249,7 +264,7 @@ BBox = ((lon_min,lon_max,lat_min,lat_max))
 im = plt.imread(os.path.join(path,"map_52.0881_5.1775_52.0847_5.1632.png"))
 
 #Dictionary for coding different pipe types on map
-pipetype_symbols = {'sewege':'v',
+pipetype_symbols = {'sewage':'v',
             'rain':'o',
             'gas':'s',
             'undefined':'X'}
@@ -291,23 +306,6 @@ symbols = [Line2D([0],[0],marker='v',c='none',mec='k',label='sewage',ms=10),
 fig.legend(handles=symbols,ncol=4,loc='upper center',bbox_to_anchor=(0.5,1))
 
 fig.savefig(os.path.join(path,'map_ratios.jpg'))
-
-
-#%%Save data to csv file
-
-#Build dataframe with data
-data = pd.DataFrame(data={'manholes':manholes,
-                          'end times':t_end,
-                          'ratio':params[0],
-                          'intercept':params[1],
-                          'lat':coor["lat"],
-                          'lon':coor["lon"],
-                          'pipe type':coor["pipetype"]})
-
-print(data)
-
-data.to_csv(os.path.join(path,'data.csv'),index=False)
-
 
 
 #%%Make plots of all times of interest (ToI), times at which the data is selected
