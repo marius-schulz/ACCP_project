@@ -160,8 +160,8 @@ print(params[0])#print regression slope values for all manholes
 #Build dataframe with data
 data = pd.DataFrame(data={'manholes':manholes,
                           'end times':t_end,
-                          'ratio':params[0],
-                          'intercept':params[1],
+                          'ratio [ppb/ppm]':np.array(params[0])*1000,
+                          'intercept [ppb/ppm]':np.array(params[1])*1000,
                           'lat':coor["lat"],
                           'lon':coor["lon"],
                           'pipe type':coor["pipetype"]})
@@ -179,15 +179,14 @@ xmax=1000 #ppm
 x=np.linspace(0,xmax,100)
 colorcode={'gas':'green','sewage':'red','rain':'blue','undefined':'black'}
 for i in range(len(data['manholes'])):
-    plt.plot(x,data['ratio'][i]*x+data['intercept'][i],linewidth=1,color=colorcode[data['pipe type'][i]])
+    plt.plot(x,data['ratio [ppb/ppm]'][i]*x/1000+data['intercept [ppb/ppm]'][i]/1000,linewidth=1,color=colorcode[data['pipe type'][i]])
 l1,l2,l3,l4,p1 = Line2D([0], [0], label='rain', color='blue'),Line2D([0], [0], label='sewage', color='red'),Line2D([0], [0], label='gas', color='green'),Line2D([0], [0], label='undefined', color='black'),mpatches.Patch(color='lightsteelblue', label='combustion regime') 
 plt.ylim([-1000,8000])
 plt.fill_between(x,20*x,color='lightsteelblue')
 plt.ylabel('CH4 [ppb]')
 plt.xlabel('CO2 [ppm]')
 plt.legend(handles=[l1,l2,l3,l4,p1])
-plt.savefig('combined_slopes.pdf')
-
+plt.savefig(os.path.join(path,'combined_slopes.pdf'))
 
 #%%Plotting map with measurement locations
 
