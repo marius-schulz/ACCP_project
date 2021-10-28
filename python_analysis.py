@@ -179,7 +179,7 @@ xmax=1000 #ppm
 x=np.linspace(0,xmax,100)
 colorcode={'gas':'green','sewage':'red','rain':'blue','undefined':'black'}
 for i in range(len(data['manholes'])):
-    plt.plot(x,data['ratio [ppb/ppm]'][i]*x/1000+data['intercept [ppb/ppm]'][i]/1000,linewidth=1,color=colorcode[data['pipe type'][i]])
+    plt.plot(x,data['ratio [ppb/ppm]'][i]*x+data['intercept [ppb/ppm]'][i],linewidth=1,color=colorcode[data['pipe type'][i]])
 l1,l2,l3,l4,p1 = Line2D([0], [0], label='rain', color='blue'),Line2D([0], [0], label='sewage', color='red'),Line2D([0], [0], label='gas', color='green'),Line2D([0], [0], label='undefined', color='black'),mpatches.Patch(color='lightsteelblue', label='combustion regime') 
 plt.ylim([-1000,8000])
 plt.fill_between(x,20*x,color='lightsteelblue')
